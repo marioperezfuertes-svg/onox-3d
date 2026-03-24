@@ -1,6 +1,6 @@
-# ONOX 3D — Team, Skills & Meeting Protocol
+# ONOX 3D — Team, Skills & Meeting Protocol# ONOX 3D — Team, Skills & Meeting Protocol
 
-> **ONOX Systems** · Bilbao, Euskadi · **onoxsystems.com**
+> **ONOX Systems** · Vitoria-Gasteiz, Araba · **onoxsystems.com**
 > Mario Pérez Fuertes — CEO & Product Lead — **always present in every decision meeting**.
 > ONIX compiles, presents and proposes. Mario decides. Dates are committed.
 
@@ -16,15 +16,43 @@
 - **GitHub**: marioperezfuertes-svg
 - **Presence**: Required in all Decision Meetings and Sprint Reviews
 - **Skills equipped**:
-  - Full-stack architecture (Next.js, Node, Docker, Postgres, Neo4j)
-  - DevOps & containerization (Docker Compose, Vercel, Cloudflare)
-  - AI/LLM orchestration (Claude, Gemini, Ollama, N8N)
-  - Business strategy & B2B commercial (gestoras, autónomos, Bilbao)
-  - RTX 4060 Ti local inference — €0/month AI stack
+    - Full-stack architecture (Next.js, Node, Docker, Postgres, Neo4j)
+    - DevOps & containerization (Docker Compose, Vercel, Cloudflare)
+    - AI/LLM orchestration (Claude, Gemini, Ollama, N8N)
+    - Business strategy & B2B commercial (gestoras, autónomos, Vitoria-Gasteiz)
+    - RTX 4060 Ti local inference — €0/month AI stack
 - **Multiplier techniques**:
-  - Delegates execution to ONIX, retains decision
-  - Uses "compile then decide" protocol — never decides without data
-  - Reviews ONOX Learning Log weekly before any meeting
+    - Delegates execution to ONIX, retains decision
+    - Uses "compile then decide" protocol — never decides without data
+    - Reviews ONOX Learning Log weekly before any meeting
+    - One rule: demo before budget — always
+
+### Agents (ONIX Core Hub)
+
+#### ONIX — The Orchestrator
+- **Role**: Memory, reasoning, and autonomous execution hub
+- **Skills**: Repository management, dependency sync, meeting transcription
+- **Responsibility**: Keeps `STUDIES.md` and `ROADMAP.md` updated based on data
+
+#### Nexo — Communications Agent
+- **Role**: Coordination and messaging (Telegram, Email, Slack)
+- **Skills**: Customer support, appointment setting, notification management
+
+#### Javier — SDR Agent
+- **Role**: Sales Development & Lead Generation
+- **Skills**: Scraping, LinkedIn outreach, cold email sequencing
+
+---
+
+## Meeting Protocol (Mando Protocol)
+
+1. **Compilation Phase**: Agents (ONIX) gather data from Vercel, logs, and socials.
+2. **Proposal Phase**: ONIX drafts a summary of findings and proposed actions.
+3. **Decision Phase**: Mario reviews the proposal (Presence Required).
+4. **Execution Phase**: Mario gives the "Mando" (Command), ONIX executes across all layers.
+
+---
+*Maintained by ONOX Internal Team in Vitoria-Gasteiz.*
   - One rule: demo before budget — always
 
 ---
