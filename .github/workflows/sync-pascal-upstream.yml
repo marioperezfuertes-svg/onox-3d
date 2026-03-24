@@ -1,0 +1,41 @@
+name: Sync Pascal Upstream → ONIX Alert
+on:
+  schedule:
+    - cron: '0 7 * * 1' # Monday 08:00 CET
+  workflow_dispatch:
+
+jobs:
+  check-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch Pascal upstream
+        run: |
+          git remote add pascal https://github.com/pascalorg/editor || true
+          git fetch pascal main
+          
+      - name: Calculate Diff and Changes
+        id: diff
+        run: |
+          CHANGES=$(git log HEAD..pascal/main --oneline -- packages/ 2>/dev/null | wc -l)
+          echo "count=$CHANGES" >> $GITHUB_OUTPUT
+          if [ "$CHANGES" != "0" ]; then
+            git diff HEAD..pascal/main -- packages/ > upstream_diff.txt
+          fi
+
+      - name: Notify ONIX via Webhook
+        if: steps.diff.outputs.count != '0'
+        run: |
+          # Send payload to N8N / ONIX API
+          curl -X POST "${{ secrets.ONIX_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "event": "pascal_upstream_update",
+              "repo": "onox-3d",
+              "changes": "${{ steps.diff.outputs.count }}",
+              "message": "Pascal Editor has ${{ steps.diff.outputs.count }} new commits in packages/. Review and merge recommended.",
+              "diff_url": "https://github.com/marioperezfuertes-svg/onox-3d/compare/main...pascalorg:editor:main"
+            }'
