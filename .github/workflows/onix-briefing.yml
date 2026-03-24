@@ -1,0 +1,154 @@
+name: ONIX Weekly Briefing
+
+on:
+  schedule:
+    # Every Friday at 17:00 UTC
+    - cron: '0 17 * * 5'
+  workflow_dispatch:
+    inputs:
+      week_override:
+        description: 'Manual run - override week label'
+        required: false
+        default: ''
+
+jobs:
+  generate-briefing:
+    name: Generate ONIX Weekly Brief
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get week number
+        id: week
+        run: |
+          WEEK=$(date +%V)
+          YEAR=$(date +%Y)
+          echo "label=W${WEEK}-${YEAR}" >> $GITHUB_OUTPUT
+          echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
+      - name: Collect git activity (last 7 days)
+        id: git_activity
+        run: |
+          COMMITS=$(git log --oneline --since='7 days ago' --format='- %s (%an)' | head -20)
+          COMMIT_COUNT=$(git log --oneline --since='7 days ago' | wc -l | tr -d ' ')
+          echo "commit_count=${COMMIT_COUNT}" >> $GITHUB_OUTPUT
+          # Store multiline output
+          echo 'commits<<EOF' >> $GITHUB_OUTPUT
+          echo "${COMMITS}" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+      - name: Collect open issues count
+        id: issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OPEN_ISSUES=$(gh issue list --state open --json number | jq length)
+          OPEN_PRS=$(gh pr list --state open --json number | jq length)
+          echo "open_issues=${OPEN_ISSUES}" >> $GITHUB_OUTPUT
+          echo "open_prs=${OPEN_PRS}" >> $GITHUB_OUTPUT
+
+      - name: Check Vercel deployment status
+        id: vercel
+        run: |
+          # Check if onoxsystems.com is reachable
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://onoxsystems.com || echo "000")
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302" ]; then
+            echo "status=ONLINE (HTTP ${HTTP_CODE})" >> $GITHUB_OUTPUT
+          else
+            echo "status=CHECK NEEDED (HTTP ${HTTP_CODE})" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create ONIX Weekly Brief issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          WEEK_LABEL="${{ steps.week.outputs.label }}"
+          DATE="${{ steps.week.outputs.date }}"
+          COMMITS="${{ steps.git_activity.outputs.commits }}"
+          COMMIT_COUNT="${{ steps.git_activity.outputs.commit_count }}"
+          OPEN_ISSUES="${{ steps.issues.outputs.open_issues }}"
+          OPEN_PRS="${{ steps.issues.outputs.open_prs }}"
+          VERCEL_STATUS="${{ steps.vercel.outputs.status }}"
+
+          BODY="# ONIX Weekly Brief \u2014 ${WEEK_LABEL}
+
+**Generated:** ${DATE}
+**Maintained by:** ONIX Agent
+
+---
+
+## Estado del Sistema
+
+| Service | Status |
+|---------|--------|
+| onoxsystems.com | ${VERCEL_STATUS} |
+| Supabase | Check dashboard |
+| Tailscale | Check nodes |
+
+---
+
+## Actividad de la Semana
+
+- **Commits:** ${COMMIT_COUNT} en los ultimos 7 dias
+
+### Commits Recientes
+${COMMITS}
+
+---
+
+## Estado del Repositorio
+
+- **Issues abiertos:** ${OPEN_ISSUES}
+- **PRs abiertos:** ${OPEN_PRS}
+
+---
+
+## Propuestas para el Equipo
+
+> ONIX: Revisar issues abiertos. Priorizar segun ROADMAP.md.
+
+1. Revisar PRs pendientes antes del lunes
+2. Actualizar STUDIES.md con hallazgos de la semana
+3. Verificar metricas de onoxsystems.com
+
+---
+
+## Agenda para Mario
+
+- [ ] Revisar este briefing
+- [ ] Aprobar/rechazar propuestas del equipo
+- [ ] Confirmar prioridades para la semana siguiente
+
+---
+
+## Proximos Hitos (ver ROADMAP.md)
+
+Revisar [ROADMAP.md](../blob/main/ROADMAP.md) para el estado de los hitos actuales.
+
+---
+
+*Generado automaticamente por ONIX. Mario tiene la decision final.*"
+
+          gh issue create \
+            --title "[ONIX Brief] ${WEEK_LABEL} \u2014 $(date +%Y-%m-%d)" \
+            --body "${BODY}" \
+            --label "onix-brief" \
+            || echo "Note: 'onix-brief' label may not exist yet. Create it in GitHub Issues settings."
+
+  notify-team:
+    name: Post notification
+    runs-on: ubuntu-latest
+    needs: generate-briefing
+    steps:
+      - name: Summary
+        run: |
+          echo "ONIX Weekly Brief generated successfully."
+          echo "Check the Issues tab for the new brief labeled 'onix-brief'."
+          echo "Mario: please review and approve agenda items."
